@@ -18,7 +18,7 @@ print("-----------------------------------------")
 def handle_client(client,lock):
     global nb_joueur
     global players
-
+    game = 0
     def clrm():
         try:
             global nb_joueur
@@ -42,6 +42,9 @@ def handle_client(client,lock):
         print(f"Joueur {numero_player} connecté")
         while True:
             data = client.recv(1024)
+            print(data)
+            if data == b'Create' and game == 0:
+                data = join_game().encode()
             if not data:
                 break
             client.sendall(data)

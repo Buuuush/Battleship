@@ -34,12 +34,24 @@ num = 0
 
 
 # ------- Menu -------
-def tkinter_menu(e):
+def tkinter_menu(s):
     global icones
-    global s
     main_root = tk.Tk()
     main_root.title("Menu")
     main_root.iconbitmap(icones["icone"])
+
+    def join_re(s,e,parent_btn):
+        if e == 0:
+            s.sendall(b"Create")
+            pwd = s.recv(1024).decode()
+            code_label = tk.Label(main_root, text=f"Code :").grid(sticky="sw")
+            code = tk.Entry(main_root)
+            code.grid(sticky="sw")
+            code.insert(0, pwd)
+            code.config(state="readonly")
+            parent_btn.pack_forget()
+        if e == 1:
+            s.sendall(b"Rejoin")
 
     def load_img(images):
         loaded_img = {}
@@ -54,12 +66,10 @@ def tkinter_menu(e):
     imgs = load_img(icones)
 
     image = tk.Label(main_root, image=imgs["accueil"]).grid()
-
-    start = tk.Button(text="Start a game", command=s.sendall(b"Join")).place(relx=0.2, rely=1, anchor="sw")
-
-    join = tk.Button(text="Join a game", command=s.sendall(b"Rejoin")).place(relx=0.8, rely=1, anchor="se")
-
-
+    start_btn = tk.Button(text="Start a game", command=lambda: join_re(s,0, start_btn))
+    start_btn.place(relx=0.2, rely=1, anchor="sw")
+    join_btn = tk.Button(text="Join a game", command=lambda: join_re(s,1,join_btn))
+    join_btn.place(relx=0.8, rely=1)
     main_root.mainloop()
 
 

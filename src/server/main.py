@@ -30,7 +30,6 @@ def handle_client(client,lock):
         except:
             pass
 
-
     numero_player = random.randint(0,10)
     with lock:
         while numero_player in players:
@@ -38,17 +37,23 @@ def handle_client(client,lock):
         players.append(numero_player)
 
     try:
-        client.send(str(numero_player).encode())
-        print(f"Joueur {numero_player} connecté")
+        client.send((f"Player {numero_player}").encode())
+        print(f"Player {numero_player} online")
         while True:
             data = client.recv(1024)
-            print(data)
-            if data == b'Create' and game == 0:
-                data = join_game().encode()
+            data = data.decode()
+            if data == 'Create' and game == 0:
+                data = f"Code {join_game()}"
+                print(f"New game created : {data.split(' ')[1]}")
+            if " " in data:
+                mode = data.split(" ")
+                print(mode)
             if not data:
                 break
+            data = data.encode()
             client.sendall(data)
         clrm()
+        
     except ConnectionAbortedError:
         clrm()
     except ConnectionResetError:

@@ -1,12 +1,13 @@
 import socket
 import threading
 import random
+import string
 
 HOST = "127.0.0.1"
 PORT = 28282
 nb_joueur = 0
+players = []
 numero_player = 0
-
 print("-----------------------------------------")
 print("|                                       |")
 print("|               Serveur prêt            |")
@@ -14,41 +15,66 @@ print("|                                       |")
 print("-----------------------------------------")
 
 
-def handle_client(client, addr):
+def handle_client(client,lock):
     global nb_joueur
-    global numero_player
-    if numero_player == 0:
-        numero_player = 3 - random.randint(1,2)
-    else:
-        numero_player = 3 - numero_player
+    global players
+    game = 0
+    def clrm():
+        try:
+            global nb_joueur
+            client.close()
+            print(f"Joueur {numero_player} déconnecté")
+            with lock:
+                nb_joueur -= 1
+                players.remove(numero_player)
+        except:
+            pass
+
+    numero_player = random.randint(0,10)
+    with lock:
+        while numero_player in players:
+            numero_player = random.randint(0,10)
+        players.append(numero_player)
+
     try:
-        client.send(str(numero_player).encode())
-        print(f"Joueur {numero_player} connecté")
+        client.send((f"Player {numero_player}").encode())
+        print(f"Player {numero_player} online")
         while True:
             data = client.recv(1024)
+            data = data.decode()
+            if data == 'Create' and game == 0:
+                data = f"Code {join_game()}"
+                print(f"New game created : {data.split(' ')[1]}")
+            if " " in data:
+                mode = data.split(" ")
+                print(mode)
             if not data:
                 break
+            data = data.encode()
             client.sendall(data)
-        nb_joueur -= 1
+        clrm()
+        
     except ConnectionAbortedError:
-        client.close()
-        print(f"Joueur {numero_player} déconnecté")
-        nb_joueur -= 1
+        clrm()
     except ConnectionResetError:
-        client.close()
-        print(f"Joueur {numero_player} déconnecté")
-        nb_joueur -= 1
+        clrm()
 
+def join_game():
+    def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+        return ''.join(random.choice(chars) for _ in range(size))
+    
+    return id_generator()
+    
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen()
+lock = threading.Lock()
 while True:
     client, addr = s.accept()
-    if nb_joueur < 2:
-        threading.Thread(target=handle_client, args=(client, addr)).start()
+    threading.Thread(target=handle_client, args=(client,lock)).start()
+    with lock:
         nb_joueur +=1
-    else:
-        client.close()
+
 
 
 # <length boat> : (x,y,"<orientation>")   --> x,y of the boat's back

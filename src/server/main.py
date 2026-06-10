@@ -63,35 +63,26 @@ def handle_client(client, lock):
                 mode = data.split(" ")
                 
                 if mode[0] == 'Join' and len(mode) > 1:
-                    print(f"[DEBUG] Commande Join recue pour la partie: {mode[1]}")
                     if mode[1] in current_games:
                         if len(current_games[mode[1]]["players"]) >= 2 and client not in current_games[mode[1]]["players"]:
-                            print(f"[DEBUG] Partie {mode[1]} pleine (deja 2 joueurs)")
                             data = "GAME_FULL"
                         else:
                             if client not in current_games[mode[1]]["players"]:
                                 current_games[mode[1]]["players"].append(client)
-                                print(f"[DEBUG] Player {numero_player} ajoute a la partie {mode[1]}")
-                            
                             if client not in data_players:
                                 data_players[client] = {"id": f"Player_{numero_player}", "game": mode[1]}
                             else:
                                 data_players[client]["game"] = mode[1]
-
                             all_players_in_game = current_games[mode[1]]["players"]
                             list_ids = [data_players.get(p, {"id": "Unknown"})["id"] for p in all_players_in_game]
                             players_msg = f"PLAYERS_LIST {','.join(list_ids)}"
                             
-                            print(f"[DEBUG] Diffusion de la liste des joueurs : {players_msg}")
                             for p in all_players_in_game:
-                                try:
                                     p.sendall(players_msg.encode())
-                                except:
-                                    pass
                             
                             data = f"JOIN_OK"
                     else:
-                        print(f"[DEBUG] Partie introuvable: {mode[1]}")
+                        pass
 
                 if mode[0] == 'ID' and len(mode) > 1:
                     already_exist = False
@@ -108,12 +99,17 @@ def handle_client(client, lock):
 
                 if mode[0] == 'START' and len(mode) > 1:
                     if mode[1] in current_games:
-                        current_games[mode[1]]["started"] = True
+                            current_games[mode[1]]["started"] = True
+                            """ A remettre lors de la phase production
+                            
+                            all_players_in_game = current_games[mode[1]]["players"]
 
-            if isinstance(data, str):
-                data = data.encode()
+                            for p in all_players_in_game:
+                                p.sendall(f"START {mode[1]}".encode())
+                            """
+
+            data = data.encode()
             client.sendall(data)
-            
         clrm()
         
     except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):

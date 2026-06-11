@@ -9,6 +9,7 @@ nb_joueur = 0
 players = []
 current_games = {}
 data_players = {}
+grids = {}
 
 print("-----------------------------------------")
 print("|                                       |")
@@ -22,6 +23,7 @@ def handle_client(client, lock):
     global players
     global current_games
     global data_players
+    global grids
 
     numero_player = random.randint(0, 100)
     with lock:
@@ -48,7 +50,7 @@ def handle_client(client, lock):
             if not data:
                 break
             data = data.decode()
-
+            print(data)
             if data == 'Create':
                 game = join_game()
                 data = f"Code {game}"
@@ -107,6 +109,12 @@ def handle_client(client, lock):
                             for p in all_players_in_game:
                                 p.sendall(f"START {mode[1]}".encode())
                             """
+
+                if "GRID" in data:
+                    grid_data = data.split("GRID ")[1]
+                    grids[data_players[client]["id"]] = grid_data
+                    print("GRID RECU:", grid_data)
+
 
             data = data.encode()
             client.sendall(data)

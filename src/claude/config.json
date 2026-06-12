@@ -1,0 +1,19 @@
+{
+    "host": "127.0.0.1",
+    "port": 28282,
+    "grid_size": 10,
+    "boats": {
+        "boat_1": {
+            "length": 1,
+            "count": 3
+        },
+        "boat_2": {
+            "length": 2,
+            "count": 2
+        },
+        "boat_3": {
+            "length": 3,
+            "count": 1
+        }
+    }
+}
